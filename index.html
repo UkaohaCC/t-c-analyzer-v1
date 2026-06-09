@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>T&C Analyzer</title>
+
+    <style>
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background-color: #f5f5f0;
+        color: #1a1a1a;
+        font-size: 16px;
+        line-height: 1.6;
+        padding: 2rem 1rem;
+      }
+
+    
+      .container {
+        max-width: 720px;     
+        margin: 0 auto;        
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;                             
+      }
+
+     
+      header h1 {
+        font-size: 28px;
+        font-weight: 600;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        margin-bottom: 6px;
+      }
+
+      header p {
+        color: #555;
+        font-size: 15px;
+      }
+
+     
+      .input-section,
+      .verdict-card,
+      .scores-card,
+      .flags-card,
+      .keypoints-card {
+        background: #ffffff;
+        border: 1px solid #e0e0d8;
+        border-radius: 12px;
+        padding: 1.5rem;
+      }
+
+     
+      .input-section label {
+        display: block;
+       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        font-weight: 500;
+        margin-bottom: 10px;
+      }
+
+      textarea {
+        width: 100%;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 12px;
+        font-size: 14px;
+        font-family: inherit;
+        line-height: 1.6;
+        resize: vertical;
+        color: #1a1a1a;
+        background: #fafaf8;
+        transition: border-color 0.2s;
+      }
+
+      textarea:focus {
+        outline: none;
+        border-color: #888;
+        background: #fff;
+      }
+
+      .char-count {
+        font-size: 13px;
+        color: #999;
+        text-align: right;
+        margin-top: 6px;
+      }
+
+    
+      .button-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 1rem;
+      }
+
+      button {
+        padding: 10px 22px;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 500;
+        cursor: pointer;
+        border: 1px solid transparent;
+        transition: opacity 0.15s, background 0.15s;
+      }
+
+      #analyze-btn {
+        background: #1a1a1a;
+        color: #fff;
+        flex: 1;               
+      }
+
+      #analyze-btn:hover { opacity: 0.85; }
+      #analyze-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+      #clear-btn {
+        background: transparent;
+        color: #555;
+        border-color: #ddd;
+      }
+
+      #clear-btn:hover { background: #dfdfdf; }
+
+     
+      .results-section {
+        display: none;         
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+
+    
+      .verdict-card {
+        border-left: 5px solid #ccc;  
+      }
+
+      .verdict-card.agree    { border-left-color: #4a9c59; background: #f0faf2; }
+      .verdict-card.caution  { border-left-color: #d4900a; background: #fffbf0; }
+      .verdict-card.decline  { border-left-color: #c0392b; background: #fff5f5; }
+
+      #verdict-icon  { font-size: 32px; margin-bottom: 6px; }
+      #verdict-label { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+      #verdict-summary { color: #444; margin-bottom: 10px; }
+
+      #tldr {
+        font-size: 14px;
+        color: #666;
+        border-top: 1px solid #e0e0d8;
+        padding-top: 10px;
+        margin-top: 4px;
+      }
+
+      
+      .scores-card h3,
+      .flags-card h3,
+      .keypoints-card h3 {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 1rem;
+      }
+
+      .score-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 10px;
+      }
+
+      .score-label {
+        font-size: 14px;
+        color: #555;
+        min-width: 100px;      
+      }
+
+      .score-bar-bg {
+        flex: 1;
+        height: 8px;
+        background: #eee;
+        border-radius: 4px;
+        overflow: hidden;
+      }
+
+      .score-bar-fill {
+        height: 100%;
+        border-radius: 4px;
+        width: 0%;              
+        transition: width 0.6s ease;
+      }
+
+      .score-value {
+        font-size: 13px;
+        font-weight: 500;
+        color: #444;
+        min-width: 36px;
+        text-align: right;
+      }
+
+     
+      #flags-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      #flags-list li {
+        font-size: 14px;
+        line-height: 1.5;
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .key-point {
+        padding: 12px 0;
+        border-bottom: 1px solid #f0f0ea;
+      }
+
+      .key-point:last-child { border-bottom: none; }
+
+      .key-point h4 {
+        font-size: 13px;
+        font-weight: 600;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+      }
+
+      .key-point p {
+        font-size: 14px;
+        color: #333;
+        line-height: 1.6;
+      }
+
+
+      footer {
+        text-align: center;
+        font-size: 13px;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        color: #aaa;
+        padding-top: 0.5rem;
+      }
+
+    
+      @media (max-width: 480px) {
+        body { padding: 1rem 0.75rem; }
+        header h1 { font-size: 22px; }
+        .button-group { flex-direction: column; }
+      }
+
+    </style>
+  </head>
+
+  <body>
+
+    <div class="container">
+
+      <header>
+        <h1> T&C Analyzer</h1>
+        <p>Paste any terms and conditions... get a plain-English breakdown and a clear recommendation.</p>
+      </header>
+
+      <section class="input-section">
+        <label for="tc-input">Paste your Terms & Conditions below:</label>
+        <textarea
+          id="tc-input"
+          placeholder="Paste the full terms and conditions here..."
+          rows="12"
+        ></textarea>
+        <p class="char-count"><span id="char-number">0</span> characters</p>
+        <div class="button-group">
+          <button id="analyze-btn">Analyze</button>
+          <button id="clear-btn">✕ Clear</button>
+        </div>
+      </section>
+
+      <section class="results-section" id="results-section">
+
+        <div class="verdict-card" id="verdict-card">
+          <h2 id="verdict-icon"></h2>
+          <h3 id="verdict-label"></h3>
+          <p id="verdict-summary"></p>
+          <p id="tldr"></p>
+        </div>
+
+        <div class="scores-card">
+          <h3>Scores</h3>
+          <div class="score-row">
+            <span class="score-label">Privacy</span>
+            <div class="score-bar-bg"><div class="score-bar-fill" id="score-privacy"></div></div>
+            <span class="score-value" id="score-privacy-val"></span>
+          </div>
+          <div class="score-row">
+            <span class="score-label">Fairness</span>
+            <div class="score-bar-bg"><div class="score-bar-fill" id="score-fairness"></div></div>
+            <span class="score-value" id="score-fairness-val"></span>
+          </div>
+          <div class="score-row">
+            <span class="score-label">Transparency</span>
+            <div class="score-bar-bg"><div class="score-bar-fill" id="score-transparency"></div></div>
+            <span class="score-value" id="score-transparency-val"></span>
+          </div>
+          <div class="score-row">
+            <span class="score-label">Your Rights</span>
+            <div class="score-bar-bg"><div class="score-bar-fill" id="score-rights"></div></div>
+            <span class="score-value" id="score-rights-val"></span>
+          </div>
+        </div>
+
+        <div class="flags-card">
+          <h3>Flags</h3>
+          <ul id="flags-list"></ul>
+        </div>
+
+        <div class="keypoints-card">
+          <h3>Key Points</h3>
+          <div class="key-point">
+            <h4>Data Usage</h4>
+            <p id="kp-data"></p>
+          </div>
+          <div class="key-point">
+            <h4>Cancellation</h4>
+            <p id="kp-cancellation"></p>
+          </div>
+          <div class="key-point">
+            <h4>Liability</h4>
+            <p id="kp-liability"></p>
+          </div>
+          <div class="key-point">
+            <h4>Content Ownership</h4>
+            <p id="kp-ownership"></p>
+          </div>
+        </div>
+
+      </section>
+
+      <footer>
+        <p>This tool provides general guidance only — not legal advice.</p>
+      </footer>
+
+    </div>
+
+  
+
+  </body>
+</html>
